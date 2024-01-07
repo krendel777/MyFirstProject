@@ -17,7 +17,7 @@ ABaseGeometryActor::ABaseGeometryActor()
 void ABaseGeometryActor::BeginPlay()
 {
 	Super::BeginPlay();
-
+	printTypes();
 }
 
 // Called every frame
@@ -29,10 +29,11 @@ void ABaseGeometryActor::Tick(float DeltaTime)
 
 void ABaseGeometryActor::printTypes()
 {
-	UE_LOG(LogTemp, Display, TEXT("Hello UNREAL ENGINE 5 !!!"));
-	UE_LOG(LogTemp, Warning, TEXT("Hello UNREAL ENGINE 5 !!!"));
-	UE_LOG(LogTemp, Error, TEXT("Hello UNREAL ENGINE 5 !!!"));
-	UE_LOG(LogTemp, Error, TEXT("testF: %f;  testI: %d;  testB: %d"), 1.23, 4, true);
+	UE_LOG(LogBaseGeometry, Warning, TEXT("Actor name %s"), *GetName());
+	UE_LOG(LogBaseGeometry, Warning, TEXT("Weapons num: %d, kills num: %i"), WeaponNum, KillsNum);
+	UE_LOG(LogBaseGeometry, Warning, TEXT("Health: %f"), Health);
+	UE_LOG(LogBaseGeometry, Warning, TEXT("IsDead: %d"), IsDead);
+	UE_LOG(LogBaseGeometry, Warning, TEXT("HasWeapon: %d"), static_cast<int>(HasWeapon));
 }
 
 void ABaseGeometryActor::printStringTypes()
@@ -40,9 +41,9 @@ void ABaseGeometryActor::printStringTypes()
 	FString Name = "Jonh Connor";
 	UE_LOG(LogBaseGeometry, Display, TEXT("Name: %s"), *Name);
 
-	int WeaponNum = 4;
-	float Health = 34.43;
-	bool IsDead = false;
+	//int WeaponNum = 4;
+//	float Health = 34.43;
+	//bool IsDead = false;
 
 	FString WeaponNumStr = "Weapons num = " + FString::FromInt(WeaponNum);
 	FString HealthStr = "Health = " + FString::SanitizeFloat(Health);
