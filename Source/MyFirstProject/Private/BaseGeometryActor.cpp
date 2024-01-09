@@ -22,6 +22,9 @@ void ABaseGeometryActor::BeginPlay()
 	
 	InitialLocation = GetActorLocation();
 
+	SetColor(GeometryData.Color);
+
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ABaseGeometryActor::OnTimerFired, GeometryData.TimerRate, true);
 	//printTypes();
 }
 
@@ -30,14 +33,29 @@ void ABaseGeometryActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	FVector CurrentLocation = GetActorLocation();
-	float time = GetWorld()->GetTimeSeconds();
-	CurrentLocation.Z = InitialLocation.Z + Aplitude * FMath::Sin(Frequancy * time);
+	switch (GeometryData.MoveType)
+	{
+		case EMovementType::Static:
+		{
 
-	SetActorLocation(CurrentLocation);
+		}
+		break;
+		case EMovementType::Sin:
+		{
+			FVector CurrentLocation = GetActorLocation();
+			float Time = GetWorld()->GetTimeSeconds();
+			CurrentLocation.Z = InitialLocation.Z + GeometryData.Aplitude * FMath::Sin(GeometryData.Frequancy * Time);
+
+			SetActorLocation(CurrentLocation); 
+		}
+		break;
+		default: break;
+	}
+
+	
 }
 
-void ABaseGeometryActor::printTypes()
+void ABaseGeometryActor::PrintTypes()
 {
 	UE_LOG(LogBaseGeometry, Warning, TEXT("Actor name %s"), *GetName());
 	UE_LOG(LogBaseGeometry, Warning, TEXT("Weapons num: %d, kills num: %i"), WeaponNum, KillsNum);
@@ -46,7 +64,7 @@ void ABaseGeometryActor::printTypes()
 	UE_LOG(LogBaseGeometry, Warning, TEXT("HasWeapon: %d"), static_cast<int>(HasWeapon));
 }
 
-void ABaseGeometryActor::printStringTypes()
+void ABaseGeometryActor::PrintStringTypes()
 {
 	FString Name = "Jonh Connor";
 	UE_LOG(LogBaseGeometry, Display, TEXT("Name: %s"), *Name);
@@ -80,5 +98,28 @@ void ABaseGeometryActor::printTranformString()
 	UE_LOG(LogBaseGeometry, Warning, TEXT("Scale %s"), *Scale.ToString());
 
 	UE_LOG(LogBaseGeometry, Error, TEXT("Human Transform %s"), *Transform.ToHumanReadableString());
+}
+
+void ABaseGeometryActor::SetColor(const FLinearColor& Color)
+{
+	UMaterialInstanceDynamic* DynMaterial = BaseMesh->CreateAndSetMaterialInstanceDynamic(0);
+	if (DynMaterial)
+		DynMaterial->SetVectorParameterValue("Color", Color);
+}
+
+void ABaseGeometryActor::OnTimerFired()
+{
+	if (++TimerCount <= MaxTimerCount)
+	{
+		const FLinearColor NewColor = FLinearColor::MakeRandomColor();
+		UE_LOG(LogBaseGeometry, Display, TEXT("TimerCount: %i,  Color to set up : % s"), TimerCount, *NewColor.ToString());
+		SetColor(NewColor);
+	}
+	else
+	{
+		UE_LOG(LogBaseGeometry, Display, TEXT("Timer has been stopped"));
+		GetWorldTimerManager().ClearTimer(TimerHandle);
+	}
+	
 }
 

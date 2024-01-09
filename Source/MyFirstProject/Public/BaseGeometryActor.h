@@ -7,6 +7,33 @@
 #include "Components/StaticMeshComponent.h"
 #include "BaseGeometryActor.generated.h"
 
+UENUM(BlueprintType)
+enum class EMovementType : uint8
+{
+	Sin,
+	Static
+};
+
+USTRUCT(BlueprintType)
+struct FGeometryData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float Aplitude = 50.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float Frequancy = 2.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	EMovementType MoveType = EMovementType::Static;	
+	
+	UPROPERTY(EditAnywhere, Category = "Design")
+	FLinearColor Color = FLinearColor::Black;
+
+	float TimerRate = 3.0f;
+};
+
 UCLASS()
 class MYFIRSTPROJECT_API ABaseGeometryActor : public AActor
 {
@@ -23,11 +50,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float Aplitude = 50.0f;
-		
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float Frequancy = 2.0f;
+	UPROPERTY(EditAnywhere, Category = "Geometry Data")
+	FGeometryData GeometryData;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	int32 WeaponNum = 4;
@@ -49,9 +73,17 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
+	FTimerHandle TimerHandle;
+
 	FVector InitialLocation;
-	void printTypes();
-	void printStringTypes();
+
+	const int32 MaxTimerCount = 5;
+	int32 TimerCount = 0;
+	void PrintTypes();
+	void PrintStringTypes();
 	void printTranformString();
 
+	void SetColor(const FLinearColor& Color);
+
+	void OnTimerFired();
 };
