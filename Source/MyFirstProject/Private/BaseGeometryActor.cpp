@@ -28,6 +28,12 @@ void ABaseGeometryActor::BeginPlay()
 	//printTypes();
 }
 
+void ABaseGeometryActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	UE_LOG(LogBaseGeometry, Error, TEXT("Actor is dead %s"), *GetName());
+	Super::EndPlay(EndPlayReason);
+}
+
 // Called every frame
 void ABaseGeometryActor::Tick(float DeltaTime)
 {
@@ -43,10 +49,13 @@ void ABaseGeometryActor::Tick(float DeltaTime)
 		case EMovementType::Sin:
 		{
 			FVector CurrentLocation = GetActorLocation();
-			float Time = GetWorld()->GetTimeSeconds();
-			CurrentLocation.Z = InitialLocation.Z + GeometryData.Aplitude * FMath::Sin(GeometryData.Frequancy * Time);
+			if (GetWorld())
+			{
+				float Time = GetWorld()->GetTimeSeconds();
+				CurrentLocation.Z = InitialLocation.Z + GeometryData.Aplitude * FMath::Sin(GeometryData.Frequancy * Time);
 
-			SetActorLocation(CurrentLocation); 
+				SetActorLocation(CurrentLocation);
+			}
 		}
 		break;
 		default: break;
@@ -80,8 +89,11 @@ void ABaseGeometryActor::PrintStringTypes()
 	FString Stat = FString::Printf(TEXT(" \n == All Stat == \n %s \n %s \n %s"), *WeaponNumStr, *HealthStr, *IsDeadStr);
 	UE_LOG(LogBaseGeometry, Warning, TEXT("%s"), *Stat);
 
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, Name);
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, Stat, true, FVector2D(1.5f, 1.5f));
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, Name);
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, Stat, true, FVector2D(1.5f, 1.5f));
+	}
 }
 
 void ABaseGeometryActor::printTranformString()
@@ -102,6 +114,8 @@ void ABaseGeometryActor::printTranformString()
 
 void ABaseGeometryActor::SetColor(const FLinearColor& Color)
 {
+	if (!BaseMesh)
+		return;
 	UMaterialInstanceDynamic* DynMaterial = BaseMesh->CreateAndSetMaterialInstanceDynamic(0);
 	if (DynMaterial)
 		DynMaterial->SetVectorParameterValue("Color", Color);
@@ -114,12 +128,19 @@ void ABaseGeometryActor::OnTimerFired()
 		const FLinearColor NewColor = FLinearColor::MakeRandomColor();
 		UE_LOG(LogBaseGeometry, Display, TEXT("TimerCount: %i,  Color to set up : % s"), TimerCount, *NewColor.ToString());
 		SetColor(NewColor);
+		OnColorChanged.Broadcast(NewColor, GetName());
 	}
 	else
 	{
 		UE_LOG(LogBaseGeometry, Display, TEXT("Timer has been stopped"));
 		GetWorldTimerManager().ClearTimer(TimerHandle);
+		OnTimerFinished.Broadcast(this);
 	}
 	
 }
 
+FString FGeometryData::GetStats() const
+{
+	return FString::Printf(TEXT("Aplitude: %f;  Frequancy: %f;  MoveType: %s;  Color: %s;  TimerRate: %f"),
+		Aplitude, Frequancy, MoveType == EMovementType::Static ? "Static" : "Sin", *Color.ToString(), TimerRate);
+}
